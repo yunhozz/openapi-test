@@ -26,10 +26,10 @@ import java.nio.charset.StandardCharsets;
 @RequestMapping("/api")
 public class OpenApiTestController {
 
-    @Value("{app.train.secretKey}")
+    @Value("${app.train.secretKey}")
     private String trainKey;
 
-    @Value("{app.weather.secretKey}")
+    @Value("${app.weather.secretKey}")
     private String weatherKey;
 
     @GetMapping("/train")
