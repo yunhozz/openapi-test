@@ -20,6 +20,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @RestController
@@ -85,15 +87,21 @@ public class OpenApiTestController {
 
     @GetMapping("/weather")
     public ResponseEntity<JSONObject> getWeatherApi(@RequestBody WeatherRequestDto weatherRequestDto) {
-        String apiUrl = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst";
+        String apiUrl = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst"; // 초단기 예보 조회
         StringBuilder sb = new StringBuilder(apiUrl);
+
+        String nowStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddkmm"));
+        String nowDate = nowStr.substring(0, 8); // 현재 날짜
+        String nowTime = nowStr.substring(8); // 현재 시각
+        log.info("date=" + nowDate);
+        log.info("time=" + nowTime);
 
         try {
             sb.append("?").append(URLEncoder.encode("ServiceKey", StandardCharsets.UTF_8)).append("=").append(weatherKey);
-            sb.append("&").append(URLEncoder.encode("nx", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(weatherRequestDto.getNx(), StandardCharsets.UTF_8)); //경도
-            sb.append("&").append(URLEncoder.encode("ny", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(weatherRequestDto.getNy(), StandardCharsets.UTF_8)); //위도
-            sb.append("&").append(URLEncoder.encode("base_date", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(weatherRequestDto.getBaseDate(), StandardCharsets.UTF_8)); // 조회하고싶은 날짜
-            sb.append("&").append(URLEncoder.encode("base_time", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(weatherRequestDto.getBaseTime(), StandardCharsets.UTF_8)); // 조회하고싶은 시간 AM 02시부터 3시간 단위
+            sb.append("&").append(URLEncoder.encode("nx", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(weatherRequestDto.getNx(), StandardCharsets.UTF_8)); // 경도
+            sb.append("&").append(URLEncoder.encode("ny", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(weatherRequestDto.getNy(), StandardCharsets.UTF_8)); // 위도
+            sb.append("&").append(URLEncoder.encode("base_date", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(nowDate, StandardCharsets.UTF_8)); // 조회하고 싶은 날짜
+            sb.append("&").append(URLEncoder.encode("base_time", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(nowTime, StandardCharsets.UTF_8)); // 조회하고 싶은 시간
             sb.append("&").append(URLEncoder.encode("dataType", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode("json", StandardCharsets.UTF_8)); // 타입
 
             HttpRequest request = HttpRequest.newBuilder()
