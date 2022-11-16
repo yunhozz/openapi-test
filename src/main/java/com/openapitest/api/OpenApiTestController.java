@@ -2,6 +2,7 @@ package com.openapitest.api;
 
 import com.openapitest.api.dto.TrainRequestDto;
 import com.openapitest.api.dto.TrainResponseDto;
+import com.openapitest.api.dto.WeatherRequestDto;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -11,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
@@ -81,5 +81,39 @@ public class OpenApiTestController {
         }
 
         return ResponseEntity.ok(trainResponseDto);
+    }
+
+    @GetMapping("/weather")
+    public ResponseEntity<JSONObject> getWeatherApi(@RequestBody WeatherRequestDto weatherRequestDto) {
+        String apiUrl = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst";
+        StringBuilder sb = new StringBuilder(apiUrl);
+
+        try {
+            sb.append("?").append(URLEncoder.encode("ServiceKey", StandardCharsets.UTF_8)).append("=").append(weatherKey);
+            sb.append("&").append(URLEncoder.encode("nx", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(weatherRequestDto.getNx(), StandardCharsets.UTF_8)); //경도
+            sb.append("&").append(URLEncoder.encode("ny", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(weatherRequestDto.getNy(), StandardCharsets.UTF_8)); //위도
+            sb.append("&").append(URLEncoder.encode("base_date", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(weatherRequestDto.getBaseDate(), StandardCharsets.UTF_8)); // 조회하고싶은 날짜
+            sb.append("&").append(URLEncoder.encode("base_time", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(weatherRequestDto.getBaseTime(), StandardCharsets.UTF_8)); // 조회하고싶은 시간 AM 02시부터 3시간 단위
+            sb.append("&").append(URLEncoder.encode("dataType", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode("json", StandardCharsets.UTF_8)); // 타입
+
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(sb.toString()))
+                    .header("accept", "application/json")
+                    .method("GET", HttpRequest.BodyPublishers.noBody())
+                    .build();
+
+            HttpResponse<String> response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            log.info(response.body());
+
+            JSONParser jsonParser = new JSONParser();
+            JSONObject jsonObject = (JSONObject) jsonParser.parse(response.body());
+
+            return ResponseEntity.ok(jsonObject);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }
