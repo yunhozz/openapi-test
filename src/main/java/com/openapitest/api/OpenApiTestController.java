@@ -5,22 +5,32 @@ import com.openapitest.api.dto.TrainResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @RestController
 @RequestMapping("/api")
 public class OpenApiTestController {
+
+    @Value("{app.train.secretKey}")
+    private String trainKey;
+
+    @Value("{app.weather.secretKey}")
+    private String weatherKey;
 
     @GetMapping("/train")
     public ResponseEntity<TrainResponseDto> getTrainApi(@RequestBody TrainRequestDto trainRequestDto) {
@@ -34,7 +44,7 @@ public class OpenApiTestController {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(apiUrl))
                     .header("accept", "application/json")
-                    .header("appkey", "l7xxddc47ffa752d4f9185c916f0deaa7dfc")
+                    .header("appkey", trainKey)
                     .method("GET", HttpRequest.BodyPublishers.noBody())
                     .build();
 
