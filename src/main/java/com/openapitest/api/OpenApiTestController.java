@@ -9,7 +9,7 @@ import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -34,7 +34,7 @@ public class OpenApiTestController {
     @Value("${app.weather.secretKey}")
     private String weatherKey;
 
-    @GetMapping("/train")
+    @PostMapping("/train")
     public ResponseEntity<TrainResponseDto> getTrainApi(@RequestBody TrainRequestDto trainRequestDto) {
         TrainResponseDto trainResponseDto = null;
         String apiUrl = "https://apis.openapi.sk.com/puzzle/congestion-train/rltm/trains/"
@@ -85,12 +85,12 @@ public class OpenApiTestController {
         return ResponseEntity.ok(trainResponseDto);
     }
 
-    @GetMapping("/weather")
+    @PostMapping("/weather")
     public ResponseEntity<JSONObject> getWeatherApi(@RequestBody WeatherRequestDto weatherRequestDto) {
         String apiUrl = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst"; // 초단기 예보 조회
         StringBuilder sb = new StringBuilder(apiUrl);
 
-        String nowStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddkmm"));
+        String nowStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddkkmm"));
         String nowDate = nowStr.substring(0, 8); // 현재 날짜
         String nowTime = nowStr.substring(8); // 현재 시각
         log.info("date=" + nowDate);
@@ -102,6 +102,7 @@ public class OpenApiTestController {
             sb.append("&").append(URLEncoder.encode("ny", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(weatherRequestDto.getNy(), StandardCharsets.UTF_8)); // 위도
             sb.append("&").append(URLEncoder.encode("base_date", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(nowDate, StandardCharsets.UTF_8)); // 조회하고 싶은 날짜
             sb.append("&").append(URLEncoder.encode("base_time", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode(nowTime, StandardCharsets.UTF_8)); // 조회하고 싶은 시간
+            sb.append("&").append(URLEncoder.encode("numOfRows", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode("60", StandardCharsets.UTF_8)); // 한 페이지 결과 수
             sb.append("&").append(URLEncoder.encode("dataType", StandardCharsets.UTF_8)).append("=").append(URLEncoder.encode("json", StandardCharsets.UTF_8)); // 타입
 
             HttpRequest request = HttpRequest.newBuilder()
