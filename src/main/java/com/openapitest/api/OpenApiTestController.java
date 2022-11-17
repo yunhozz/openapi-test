@@ -4,7 +4,9 @@ import com.openapitest.api.dto.Response;
 import com.openapitest.api.dto.train.TrainRequestDto;
 import com.openapitest.api.dto.train.TrainResponseDto;
 import com.openapitest.api.dto.weather.WeatherRequestDto;
+import com.openapitest.api.dto.weather.WeatherResponseDto;
 import lombok.extern.slf4j.Slf4j;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Value;
@@ -75,7 +77,7 @@ public class OpenApiTestController {
                         .msg(String.valueOf(jsonObject.get("msg")))
                         .build();
 
-                return Response.failure(trainResponseDto.getCode(), trainResponseDto, trainResponseDto.getMsg(), HttpStatus.BAD_REQUEST);
+                return Response.failure(-1000, trainResponseDto, "데이터가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
             }
 
         } catch (Exception e) {
@@ -89,6 +91,9 @@ public class OpenApiTestController {
     public Response getWeatherApi(@RequestBody WeatherRequestDto weatherRequestDto) {
         String apiUrl = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst"; // 초단기 예보 조회
         StringBuilder sb = new StringBuilder(apiUrl);
+
+        JSONObject jsonObject = null; // 샘플 데이터
+        WeatherResponseDto weatherResponseDto = null;
 
         String nowStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddkkmm"));
         String nowDate = nowStr.substring(0, 8); // 현재 날짜
@@ -115,15 +120,46 @@ public class OpenApiTestController {
             log.info(response.body());
 
             JSONParser jsonParser = new JSONParser();
-            JSONObject jsonObject = (JSONObject) jsonParser.parse(response.body());
+            jsonObject = (JSONObject) jsonParser.parse(response.body()); // 샘플 데이터
 
-            // TODO: 2022-11-17 dto 로 가공해서 응답 
-            return Response.success(jsonObject, HttpStatus.CREATED);
+            JSONObject responseData = (JSONObject) ((JSONObject) jsonParser.parse(response.body())).get("response");
+            JSONObject header = (JSONObject) responseData.get("header");
+            String resultCode = (String) header.get("resultCode");
+
+            if (resultCode.equals("00")) {
+                JSONObject items = (JSONObject) ((JSONObject) responseData.get("body")).get("items");
+                JSONArray item = (JSONArray) items.get("item");
+
+                for (Object data : item) {
+                    /*
+                     * T1H: 기온(C)
+                     * REH: 습도(%)
+                     * RN1: 1시간 강수량(mm)
+                     * PTY: 강수 형태(0 ~ 7)
+                     * WSD: 풍속(m/s)
+                     */
+                    String category = (String) ((JSONObject) data).get("category"); // 카테고리 (T1H, REH, RN1, PTY, WSD)
+                    String forecastDate = (String) ((JSONObject) data).get("fcstDate"); // 예측 날짜
+                    String forecastTime = (String) ((JSONObject) data).get("fcstTime"); // 예측 시각
+                    String forecastValue = (String) ((JSONObject) data).get("fcstValue"); // 카테고리 별 예측 값
+                    // TODO: 2022-11-17 response dto 로 가공
+                }
+
+            } else {
+                String resultMsg = (String) header.get("resultMsg");
+                weatherResponseDto = WeatherResponseDto.builder()
+                        .resultCode(resultCode)
+                        .resultMsg(resultMsg)
+                        .build();
+
+                return Response.failure(-1000, weatherResponseDto, "데이터가 존재하지 않습니다.", HttpStatus.BAD_REQUEST);
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return null;
+        return Response.success(jsonObject, HttpStatus.CREATED); // 샘플 데이터
+//        return Response.success(weatherResponseDto, HttpStatus.CREATED);
     }
 }
