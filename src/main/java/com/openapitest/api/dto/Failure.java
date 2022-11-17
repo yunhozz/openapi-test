@@ -1,14 +1,23 @@
 package com.openapitest.api.dto;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-@AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Failure<T> implements Result {
 
     private T data;
     private String msg;
+
+    public Failure(String msg) {
+        this.msg = msg;
+    }
+
+    public Failure(T data, String msg) {
+        this.data = data;
+        this.msg = msg;
+    }
 }
