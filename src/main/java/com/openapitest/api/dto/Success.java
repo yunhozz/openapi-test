@@ -1,12 +1,13 @@
 package com.openapitest.api.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class TrainRequestDto {
+@AllArgsConstructor
+public class Success<T> implements Result {
 
-    private String subwayLine;
-    private String trainY;
+    private T data;
 }

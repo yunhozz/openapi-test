@@ -1,14 +1,14 @@
 package com.openapitest.api;
 
-import com.openapitest.api.dto.TrainRequestDto;
-import com.openapitest.api.dto.TrainResponseDto;
-import com.openapitest.api.dto.WeatherRequestDto;
+import com.openapitest.api.dto.Response;
+import com.openapitest.api.dto.train.TrainRequestDto;
+import com.openapitest.api.dto.train.TrainResponseDto;
+import com.openapitest.api.dto.weather.WeatherRequestDto;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,7 +35,7 @@ public class OpenApiTestController {
     private String weatherKey;
 
     @PostMapping("/train")
-    public ResponseEntity<TrainResponseDto> getTrainApi(@RequestBody TrainRequestDto trainRequestDto) {
+    public Response getTrainApi(@RequestBody TrainRequestDto trainRequestDto) {
         TrainResponseDto trainResponseDto = null;
         String apiUrl = "https://apis.openapi.sk.com/puzzle/congestion-train/rltm/trains/"
                 + trainRequestDto.getSubwayLine()
@@ -75,18 +75,18 @@ public class OpenApiTestController {
                         .msg(String.valueOf(jsonObject.get("msg")))
                         .build();
 
-                return new ResponseEntity<>(trainResponseDto, HttpStatus.BAD_REQUEST);
+                return Response.failure(trainResponseDto.getCode(), trainResponseDto, trainResponseDto.getMsg(), HttpStatus.BAD_REQUEST);
             }
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        return ResponseEntity.ok(trainResponseDto);
+        return Response.success(trainResponseDto, HttpStatus.CREATED);
     }
 
     @PostMapping("/weather")
-    public ResponseEntity<JSONObject> getWeatherApi(@RequestBody WeatherRequestDto weatherRequestDto) {
+    public Response getWeatherApi(@RequestBody WeatherRequestDto weatherRequestDto) {
         String apiUrl = "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst"; // 초단기 예보 조회
         StringBuilder sb = new StringBuilder(apiUrl);
 
@@ -117,7 +117,8 @@ public class OpenApiTestController {
             JSONParser jsonParser = new JSONParser();
             JSONObject jsonObject = (JSONObject) jsonParser.parse(response.body());
 
-            return ResponseEntity.ok(jsonObject);
+            // TODO: 2022-11-17 dto 로 가공해서 응답 
+            return Response.success(jsonObject, HttpStatus.CREATED);
 
         } catch (Exception e) {
             e.printStackTrace();

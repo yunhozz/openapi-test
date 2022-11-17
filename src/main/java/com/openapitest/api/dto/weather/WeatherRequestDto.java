@@ -1,4 +1,4 @@
-package com.openapitest.api.dto;
+package com.openapitest.api.dto.weather;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
