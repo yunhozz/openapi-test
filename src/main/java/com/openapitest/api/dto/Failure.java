@@ -12,8 +12,8 @@ public class Failure<T> implements Result {
     private T data;
     private String msg;
 
-    public Failure(String msg) {
-        this.msg = msg;
+    public Failure(T data) {
+        this.data = data;
     }
 
     public Failure(T data, String msg) {

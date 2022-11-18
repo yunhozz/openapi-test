@@ -24,8 +24,8 @@ public class Response {
         return new Response(true, 0, new Success<>(data), status);
     }
 
-    public static Response failure(int code, String msg, HttpStatus status) {
-        return new Response(false, code, new Failure<>(msg), status);
+    public static <T> Response failure(int code, T data, HttpStatus status) {
+        return new Response(false, code, new Failure<>(data), status);
     }
 
     public static <T> Response failure(int code, T data, String msg, HttpStatus status) {
